@@ -1,28 +1,9 @@
-function CodeLookup() {
+function selectFile() {
+    var selectedFile = document.querySelector('input[name="file"]:checked').value;
+    // perform server-side event with selected file
+}
 
-    console.log("CodeLookup Function Called\n");
-
-    var LookupCode = document.getElementById("CableCode").value;
-
-    if (!LookupCode) { return };
-    console.log("Code: "+LookupCode)
-    var Lookup = $.ajax({
-        type : "POST",
-        url  : "lookup.php",
-        data : {
-            CableCode : LookupCode,
-        }
-    });
-
-    Lookup.done(function(msg) {
-        if (msg) {
-            alert("Please enter a cable code.");
-        } else {
-            alert("Data returned: "+msg);
-        }
-    });
-
-    Lookup.fail(function(_jqXHR, textStatus) {
-        alert("Request failed: "+textStatus);
-    });
-};
+var radioButtons = document.querySelectorAll('input[name="file"]');
+radioButtons.forEach(function(radioButton) {
+  radioButton.addEventListener('change', selectFile);
+});
