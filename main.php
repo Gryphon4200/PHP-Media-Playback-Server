@@ -1,12 +1,16 @@
 <?php echo "\n"; ?>
  <body>
   <ul>
-   <?php foreach($files as $file): ?>
-   <li>
-    <input type="radio" name="file" value="<?php echo $file; ?>">
-    <?php echo $file; ?>
-   </li>
-   <?php endforeach; ?>
+   <?php
+    foreach($files as $file) {
+        if (!($file == "." || $file == "..")) {
+            echo "<li>\n";
+            echo "<input type=\"radio\" name=\"file\" value=\"$file\">";
+            echo " ".$file;
+            echo "\n</li>\n";
+        };
+    }
+   ?>
   </ul>
 
   <form action="upload.php" method="post" enctype="multipart/form-data">
