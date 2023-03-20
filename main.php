@@ -1,17 +1,14 @@
 <?php echo "\n"; ?>
  <body>
-  <ul>
+  <div class="menu">
+   <ul>
    <?php
     foreach($files as $file) {
         if (!($file == "." || $file == "..")) {
-            echo "<li>\n";
-            echo "<input type=\"radio\" name=\"file\" value=\"$file\">";
-            echo " ".$file;
-            echo "\n</li>\n";
+            echo "   <a href=\"#\" onclick=\"menuItemClicked('$file');\"><li id='".$file."' class=''>$file</li></a>\n";
         };
     }
    ?>
-  </ul>
 
   <form action="upload.php" method="post" enctype="multipart/form-data">
    <input type="file" name="fileToUpload" id="fileToUpload">

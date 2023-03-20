@@ -1,5 +1,4 @@
-function selectFile() {
-  var selectedFile = document.querySelector('input[name="file"]:checked').value;
+function UpdateDisplay(selectedFile) {
 
   var xhttp = new XMLHttpRequest();
   xhttp.onreadystatechange = function() {
@@ -15,9 +14,18 @@ function selectFile() {
   xhttp.send(params);
 }
 
-  // Create listener for selection change.
-var radioButtons = document.querySelectorAll('input[name="file"]');
+function menuItemClicked(index) {
+  var menuItems = document.querySelectorAll('.menu li');
 
-radioButtons.forEach(function(radioButton) {
-  radioButton.addEventListener('change', selectFile);
-});
+  for (var i = 0; i < menuItems.length; i++) {
+    menuItems[i].classList.remove('selected');
+  }
+
+  const SelectedItem = document.getElementById(index);
+  
+  console.log(SelectedItem);
+
+  SelectedItem.classList.add('selected');
+
+  UpdateDisplay(index);  
+}
