@@ -22,9 +22,6 @@ function menuItemClicked(index) {
   }
 
   const SelectedItem = document.getElementById(index);
-  
-  console.log(SelectedItem);
-
   SelectedItem.classList.add('selected');
 
   UpdateDisplay(index);  

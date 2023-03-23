@@ -7,5 +7,5 @@
   fwrite($file, $text);
   fclose($file);
 
-  echo "File updated successfully!";
+  // echo "File updated successfully!";
 ?>
