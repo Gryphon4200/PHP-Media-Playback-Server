@@ -7,10 +7,10 @@
         $filename = "MorningLine Skyline.jpg";
         break;
       case 2:
-        $filename = "OpenLine.png";
+        $filename = "g3aQnL.webp";
         break;
       case 3:
-        $filename = "InsidePolotics.png";
+        $filename = "GoYcMqd.jpg";
         break;                
       default:
         $filename = "NC5-Wallpaper.png";
