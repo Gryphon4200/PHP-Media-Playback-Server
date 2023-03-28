@@ -1,17 +1,19 @@
 <?php echo "\n"; ?>
  <body>
+  <div class="dropdown">
+   <button class="dropbtn">Presets</button>
+   <div class="dropdown-content">
 <?php
-    echo "<hr>\n";
 
     $Index = 0;
 
     foreach($Presets as $Preset) {
             $Index += 1;
-            echo "Preset $Index: ".$Preset."<br>\n";
+            echo "    <a href=\"#\">Preset $Index: $Preset</a>";
     }
-
-    echo "<hr>\n";
 ?>
+   </div>
+  </div>
   <div class="menu">
    <ul>
    <?php
