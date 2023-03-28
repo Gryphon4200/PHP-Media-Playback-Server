@@ -1,5 +1,17 @@
 <?php echo "\n"; ?>
  <body>
+<?php
+    echo "<hr>\n";
+
+    $Index = 0;
+
+    foreach($Presets as $Preset) {
+            $Index += 1;
+            echo "Preset $Index: ".$Preset."<br>\n";
+    }
+
+    echo "<hr>\n";
+?>
   <div class="menu">
    <ul>
    <?php

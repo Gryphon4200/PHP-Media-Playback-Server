@@ -4,17 +4,16 @@
     $config_file = file_get_contents("config.json");
 
     // Split the contents into an array using a delimiter
-       $file_info = explode("|", $file_contents);
+    $Settings = json_decode($config_file,true);
 
-       // Get the filename and path
-       $file_name = trim((string) $file_info[0]);
-       $file_signature = trim((string) $file_info[1]);
-   
-          // Display the image
-       echo "<img src='Media/{$file_name}' alt='{$file_name}'>";
-   
+    $ServerPath = $Settings["path"];
 
     // Retrieve file list
-    $directory = "C:\Temp\Web Projects\Video_Wall\Media\\";
-    $files = scandir($directory);
+    $files = scandir($ServerPath);
+
+    foreach($Settings as $key=>$value) {
+        if (!($key == "path")) {
+            $Presets[$key] = $value;
+        }
+    }
 ?>
