@@ -32,8 +32,17 @@
 		$file_name = trim((string) $file_info[0]);
 		$file_signature = trim((string) $file_info[1]);
     
-   		// Display the image
-		echo "<img src='Media/{$file_name}' alt='{$file_name}'>";
+    if (substr($file_name,-3) == "mp4") {
+      // Display video
+      echo " <video controls autoplay loop>\n";
+      echo "  <source src=\"Media\\$file_name\" type=\"video/mp4\">\n";
+      echo "  Your browser does not support the video tag.\n";
+      echo " </video>\n";
+    } else {
+      // Display the image
+      echo "<img src='Media/{$file_name}' alt='{$file_name}'>";
+    }
+      
     
     ?>
 </body>
