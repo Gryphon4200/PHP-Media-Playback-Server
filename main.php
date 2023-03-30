@@ -1,7 +1,7 @@
 <?php echo "\n"; ?>
  <body>
   <div class="dropdown">
-   <button class="dropbtn">Presets</button>
+   <button class="dropbtn" type="button">Presets</button>
    <div class="dropdown-content">
     <label for="presets" class="hidden">Presets:</label>
 <?php
@@ -41,10 +41,11 @@
     }
    ?>
 
-<form action="upload.php" method="post" enctype="multipart/form-data">
+  <form action="upload.php" method="post" enctype="multipart/form-data">
+   <label class="hidden" for="fileToUpload">File to Upload</label>
    <input type="file" name="fileToUpload" id="fileToUpload">
    <input type="submit" value="Upload File" name="submit">
   </form>
 
  </body>
- <script src="script.js"></script>
+ <script src="script.js" type="application/javascript"></script>
