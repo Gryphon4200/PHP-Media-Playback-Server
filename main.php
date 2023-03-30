@@ -2,6 +2,9 @@
  <body>
   <div class="dropdown">
    <button class="dropbtn" type="button">Presets</button>
+
+   <!-- ############ Preset Config Menu ############ -->
+
    <div class="dropdown-content">
     <label for="presets" class="hidden">Presets:</label>
 <?php
@@ -31,21 +34,28 @@
     </form>
    </div>
   </div>
+
+  <!-- ############ File Selection List ############ -->
+
   <div class="menu">
-   <ul>
    <?php
     foreach($File_List as $file) {
         if (!($file == "." || $file == ".." || $file == ".DS_Store")) {
-            echo "   <a href=\"#\" onclick=\"menuItemClicked('$file');\"><li id='".$file."' class=''>$file</li></a>\n";
+            echo "   <div class=\"row\" id='".$file."'>\n";
+            echo "    <div class=\"file\" onclick=\"menuItemClicked('$file');\">$file</div>\n";
+            echo "    <div class=\"remove\" onclick=\"DeleteFile('$file');\">X</div>\n";
+            echo "   </div>\n";
+//            echo "   <a href=\"#\" onclick=\"menuItemClicked('$file');\"><li id='".$file."' class=''>$file</li></a>\n";
         };
     }
    ?>
 
-  <form action="upload.php" method="post" enctype="multipart/form-data">
-   <label class="hidden" for="fileToUpload">File to Upload</label>
-   <input type="file" name="fileToUpload" id="fileToUpload">
-   <input type="submit" value="Upload File" name="submit">
-  </form>
+   <form action="upload.php" method="post" enctype="multipart/form-data">
+    <label class="hidden" for="fileToUpload">File to Upload</label>
+    <input type="file" name="fileToUpload" id="fileToUpload">
+    <input type="submit" value="Upload File" name="submit">
+   </form>
+  </div>
 
  </body>
  <script src="script.js" type="application/javascript"></script>

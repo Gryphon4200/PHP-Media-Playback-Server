@@ -13,18 +13,19 @@ function WriteFile(params) {
 
 function UpdateDisplay(selectedFile) {
   var timestamp = new Date().toISOString();
-  var params = "filename=" + selectedFile + "&timestamp=" + timestamp;
+  var params = "update=UpdateDisplay&filename=" + selectedFile + "&timestamp=" + timestamp;
 
   WriteFile(params);
 }
 
 function menuItemClicked(index) {
-  var menuItems = document.querySelectorAll('.menu li');
-
+  
+  var menuItems = document.querySelectorAll('.row');
+  
   for (var i = 0; i < menuItems.length; i++) {
     menuItems[i].classList.remove('selected');
   }
-
+  
   const SelectedItem = document.getElementById(index);
   SelectedItem.classList.add('selected');
 
@@ -32,7 +33,7 @@ function menuItemClicked(index) {
 }
 
 function SavePresetsToConfig(Presets) {
-  var params = "UpdatePreset=1";
+  var params = "update=ConfigFileUpdate";
 
   // Format HTTP POST param list
   for (var i = 0; i < Presets.length; i++) {
@@ -56,4 +57,8 @@ function Update_Presets() {
   }
 
   SavePresetsToConfig(dataArray); // return the populated array
+}
+
+function DeleteFile($file) {
+    alert("Delete File function called.");
 }
