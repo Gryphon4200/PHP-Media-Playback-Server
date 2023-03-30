@@ -21,6 +21,7 @@
     $timestamp = time();
     $filename = $Presets[$_GET["preset"]];
     $text = $filename . "|" . $timestamp;
+    $file = fopen("image.txt", "w") or die("Unable to open file!");
   }
 
   if (isset($_POST["timestamp"])) {
@@ -30,7 +31,6 @@
     $file = fopen("image.txt", "w") or die("Unable to open file!");
     $text = $filename . "|" . $timestamp;
   }
-  
 
   fwrite($file, $text);
   fclose($file);

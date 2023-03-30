@@ -1,5 +1,4 @@
-function UpdateDisplay(selectedFile) {
-
+function WriteFile(params) {
   var xhttp = new XMLHttpRequest();
   xhttp.onreadystatechange = function() {
     if (this.readyState == 4 && this.status == 200) {
@@ -9,9 +8,14 @@ function UpdateDisplay(selectedFile) {
 
   xhttp.open("POST", "update.php", true);
   xhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+  xhttp.send(params);
+}
+
+function UpdateDisplay(selectedFile) {
   var timestamp = new Date().toISOString();
   var params = "filename=" + selectedFile + "&timestamp=" + timestamp;
-  xhttp.send(params);
+
+  WriteFile(params);
 }
 
 function menuItemClicked(index) {
@@ -35,18 +39,7 @@ function SavePresetsToConfig(Presets) {
      params += "&"+(i+1)+"="+Presets[i];
   }
 
-  // console.log("Params: "+params);
-
-  var xhttp = new XMLHttpRequest();
-  xhttp.onreadystatechange = function() {
-    if (this.readyState == 4 && this.status == 200) {
-      console.log(this.responseText);
-    }
-  };
-  
-  xhttp.open("POST", "update.php", true);
-  xhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
-  xhttp.send(params);
+  WriteFile(params);
 }
 
 function Update_Presets() {
