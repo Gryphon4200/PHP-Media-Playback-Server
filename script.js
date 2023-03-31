@@ -1,3 +1,12 @@
+function ToggleElement() {
+  var x = document.getElementById("PresetMenu");
+  if (x.style.display === "none") {
+    x.style.display = "block";
+  } else {
+    x.style.display = "none";
+  }
+}
+
 function WriteFile(params) {
   var xhttp = new XMLHttpRequest();
   xhttp.onreadystatechange = function() {
@@ -57,6 +66,7 @@ function Update_Presets() {
   }
 
   SavePresetsToConfig(dataArray); // return the populated array
+  location.reload();
 }
 
 function DeleteFile($file) {
