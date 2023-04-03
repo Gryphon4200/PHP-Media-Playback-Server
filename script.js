@@ -69,6 +69,10 @@ function Update_Presets() {
   location.reload();
 }
 
-function DeleteFile($file) {
-    alert("Delete File function called.");
+function DeleteFile(file) {
+  var params = "update=Delete&filename="+file;
+  // alert("Delete File function called.\n"+file+" to be deleted.");
+  WriteFile(params);
+  window.location.reload(true);
+  location.reload(true);
 }

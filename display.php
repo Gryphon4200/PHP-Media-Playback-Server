@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html>
-<head>
+ <head>
 	<title>Display Image</title>
 	<style type="text/css">
         * {
@@ -19,10 +19,10 @@
             object-fit: cover;
 		}
 	</style>
-</head>
-<body>
+ </head>
+ <body>
 	<?php
-        // Read the contents of the text file
+    // Read the contents of the text file
 		$file_contents = file_get_contents("image.txt");
 
 		// Split the contents into an array using a delimiter
