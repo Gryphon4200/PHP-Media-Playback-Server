@@ -38,7 +38,7 @@ A web-based media playback server written in PHP that provides file management, 
 - Have the system auto login. 
 - Set the power plan to never turn off the display. 
 
-### Windows  
+### Windows 
 [AutoLogon](https://learn.microsoft.com/en-us/sysinternals/downloads/autologon)  
   
 *Never turn off display*  
@@ -47,16 +47,16 @@ A web-based media playback server written in PHP that provides file management, 
 3. Adjust screen timeout: Under the "Screen" section, find the options for "On battery power" and "When plugged in".
 4. Set to "Never": Click on the dropdown menus for these settings and select Never.
 
-## Ubuntu  
+### Ubuntu 
 *Simple way*  
-In Settings -> System -> Users you can set a user to auto login.
-In Settings -> Power set Power Mode to Performance and Power Saving -> Screen Blank to Never
+In Settings -> System -> Users you can set a user to auto login.  
+In Settings -> Power set Power Mode to Performance and Power Saving -> Screen Blank to Never  
 
 *Advanced Way*  
 You can enable automatic login to the GUI desktop in Ubuntu by editing the GDM configuration file.  
 Run:  
 ```sudo nano /etc/gdm3/custom.conf```  
-And uncomment (or add) the line:
+And uncomment (or add) the line: 
 ```
 [daemon]
 AutomaticLoginEnable = true
