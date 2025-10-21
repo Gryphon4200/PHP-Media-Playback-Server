@@ -32,7 +32,8 @@ Change preset configurations without touching the display hardware
 Monitor system status and file changes in real-time  
 No need to physically access the display computer for content updates  
 
-## Usage
+## Usage  
+
 ### Basic Operation
 Access the Interface: Navigate to http://your-server/php-media-server/  
 Upload Files: Use the upload form at the bottom of the file list  
@@ -90,6 +91,10 @@ check_changes.php	GET	JSON API for file monitoring
 3. Adjust screen timeout: Under the "Screen" section, find the options for "On battery power" and "When plugged in".
 4. Set to "Never": Click on the dropdown menus for these settings and select Never.
 
+*Start the server when windows loads*
+Copy StartServer.ps1 and StartDisplay.ps1 to c:\ProgramData\Microsoft\Windows\Start Menu\Programs\Startup\  
+Edit these two scripts to fit your needs.  
+
 ### Ubuntu 
 *Simple way*  
 In Settings -> System -> Users you can set a user to auto login.  
@@ -98,7 +103,9 @@ In Settings -> Power set Power Mode to Performance and Power Saving -> Screen Bl
 *Advanced Way*  
 You can enable automatic login to the GUI desktop in Ubuntu by editing the GDM configuration file.  
 Run:  
-```sudo nano /etc/gdm3/custom.conf```  
+```
+sudo nano /etc/gdm3/custom.conf
+```  
 And uncomment (or add) the line: 
 ```
 [daemon]
@@ -106,6 +113,25 @@ AutomaticLoginEnable = true
 AutomaticLogin = DevTeam
 ```
 Then save and reboot the system. This will automatically log the DevTeam user in after the reboot.
+
+*Setup the server to start when the system boots.*
+```
+sudo vi /etc/systemd/system/mediaserver.service
+
+[Unit]
+Description=Media Playback Server
+After=network.target
+Wants=network.target
+
+[Service]
+ExecStart=php -S 0.0.0.0:8080 -t '/Server/'
+KillMode=process
+Restart=on-failure
+
+[Install]
+WantedBy=default.target
+RequiredBy=network.target
+```
 
 ## Installation
 
