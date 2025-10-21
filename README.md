@@ -91,7 +91,7 @@ check_changes.php	GET	JSON API for file monitoring
 3. Adjust screen timeout: Under the "Screen" section, find the options for "On battery power" and "When plugged in".
 4. Set to "Never": Click on the dropdown menus for these settings and select Never.
 
-*Start the server when windows loads*
+*Start the server when windows loads*  
 Copy StartServer.ps1 and StartDisplay.ps1 to c:\ProgramData\Microsoft\Windows\Start Menu\Programs\Startup\  
 Edit these two scripts to fit your needs.  
 
