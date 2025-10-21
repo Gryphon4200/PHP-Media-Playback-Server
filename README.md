@@ -128,6 +128,6 @@ Create or edit config.json:
 ```
 Path Options:
 
-"./" - Relative path (recommended for portability)
-"/absolute/path/to/media/" - Absolute path
-"C:\\Server\\" - Windows absolute path
+"./" - Relative path (recommended for portability)  
+"/absolute/path/to/media/" - Absolute path  
+"C:\\Server\\" - Windows absolute path  
