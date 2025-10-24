@@ -75,7 +75,7 @@ check_changes.php	GET	JSON API for file monitoring
 ```
 - On Ubuntu it's located at /etc/php/#.#/cli/php.ini
 - On Windows you'll need to rename or copy C:\php\php.ini-production to C:\php\php.ini
-- You can also adgust these to suit your needs but the defaults are to small for videos.
+- You can also adjust these to suit your needs but the defaults are to small for videos.
 - You can check what files are loaded with php --ini  
 
 ## Quick Start
