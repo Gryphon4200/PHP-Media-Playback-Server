@@ -75,7 +75,7 @@ check_changes.php	GET	JSON API for file monitoring
 ```
 - On Ubuntu it's located at /etc/php/#.#/cli/php.ini
 - On Windows you'll need to rename or copy C:\php\php.ini-production to C:\php\php.ini
-- You can also adgust these to suit your needs but the defaults are to small for videos.
+- You can also adjust these to suit your needs but the defaults are to small for videos.
 - You can check what files are loaded with php --ini  
 
 ## Quick Start
@@ -148,8 +148,8 @@ RequiredBy=network.target
 
 ### Clone the Repository
 ```
-git clone https://github.com/Gryphon4200/Media-Playback-Server.git
-cd Media-Playback-Server
+git clone https://github.com/Gryphon4200/PHP-Media-Playback-Server.git
+cd PHP-Media-Playback-Server
 ```
 
 ## Configure the Application
@@ -168,3 +168,12 @@ Path Options:
 "./" - Relative path (recommended for portability)  
 "/absolute/path/to/media/" - Absolute path  
 "C:\\Server\\" - Windows absolute path  
+
+## Presets
+
+The purpose of the presets are for quick remote updates. Mostly for use with a Stream Deck.
+Just create a button that sends a GET command to:
+```
+http://localhost:8080/update.php?preset=3
+```
+You can add as many presets as you'd like.
