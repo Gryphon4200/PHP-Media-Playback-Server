@@ -1,0 +1,246 @@
+/* ========= Buttons ========= */
+.btn {
+    padding: 12px 24px;
+    border: none;
+    border-radius: var(--border-radius);
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+    transition: all var(--transition);
+    text-decoration: none;
+    display: inline-block;
+    text-align: center;
+}
+
+.btn-primary {
+    background-color: var(--primary-color);
+    color: var(--text-color);
+}
+
+.btn-primary:hover {
+    background-color: var(--primary-dark);
+}
+
+.btn-secondary {
+    background-color: var(--secondary-color);
+    color: var(--text-color);
+}
+
+.btn-secondary:hover {
+    background-color: var(--secondary-dark);
+}
+
+/* ========= Forms ========= */
+select {
+    background-color: #fff;
+    color: #333;
+    border: 2px solid var(--secondary-color);
+    border-radius: 6px;
+    padding: 8px 12px;
+    font-size: 14px;
+    width: 100%;
+    margin: 4px 0;
+    transition: border-color var(--transition);
+}
+
+select:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 2px rgba(76, 175, 80, 0.2);
+}
+
+input[type="file"] {
+    background-color: var(--surface-dark);
+    color: var(--text-color);
+    border: 2px dashed var(--surface-color);
+    border-radius: 6px;
+    padding: 12px;
+    width: 100%;
+    max-width: 400px;
+    cursor: pointer;
+    transition: all var(--transition);
+}
+
+input[type="file"]:hover {
+    border-color: var(--secondary-color);
+    background-color: #666;
+}
+
+/* ========= Dropdowns ========= */
+.dropdown {
+    position: relative;
+    display: inline-block;
+    margin: 0 auto 20px;
+    text-align: center;
+}
+
+.dropbtn {
+    background-color: var(--primary-color);
+    color: var(--text-color);
+    padding: 16px 24px;
+    border: none;
+    border-radius: var(--border-radius);
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: 500;
+    transition: background-color var(--transition);
+}
+
+.dropdown:hover .dropbtn {
+    background-color: var(--primary-dark);
+}
+
+.dropdown-content {
+    display: none;
+    position: absolute;
+    top: 56px;
+    left: 50%;
+    transform: translateX(-50%);
+    color: var(--text-color);
+    background-color: #3eaf3e;
+    padding: 12px;
+    border-radius: var(--border-radius);
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.4);
+    z-index: 1000;
+    min-width: 320px;
+}
+
+.dropdown:hover .dropdown-content {
+    display: block;
+    animation: fadeIn 0.3s ease;
+}
+
+/* ========= Animations ========= */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slideIn {
+    from { transform: translateX(-20px); opacity: 0; }
+    to { transform: translateX(0); opacity: 1; }
+}
+
+@keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+    100% { transform: scale(1); }
+}
+
+/* ========= Notifications ========= */
+.notification {
+    position: fixed;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 12px 20px;
+    border-radius: var(--border-radius);
+    font-weight: 500;
+    z-index: 1001;
+    opacity: 0;
+    transition: all 0.3s ease;
+    max-width: 400px;
+}
+
+.notification.show {
+    opacity: 1;
+    animation: slideIn 0.3s ease;
+}
+
+.notification-info {
+    background-color: var(--secondary-color);
+    color: var(--text-color);
+}
+
+.notification-error {
+    background-color: var(--error-color);
+    color: var(--text-color);
+}
+
+.notification-success {
+    background-color: var(--success-color);
+    color: var(--text-color);
+}
+
+.notification-warning {
+    background-color: var(--warning-color);
+    color: var(--text-color);
+}
+
+/* ========= Upload Components ========= */
+.upload-container {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    align-items: center;
+}
+
+.upload-label {
+    font-weight: 500;
+    color: var(--text-color);
+    margin-bottom: 10px;
+}
+
+.upload-progress {
+    width: 100%;
+    max-width: 400px;
+    margin-top: 10px;
+}
+
+.progress-bar {
+    width: 100%;
+    height: 6px;
+    background-color: var(--surface-dark);
+    border-radius: 3px;
+    overflow: hidden;
+}
+
+.progress-fill {
+    height: 100%;
+    background-color: var(--primary-color);
+    transition: width 0.3s ease;
+    width: 0%;
+}
+
+.drag-over input[type="file"] {
+    border-color: var(--primary-color) !important;
+    background-color: var(--surface-dark) !important;
+    border-style: solid !important;
+}
+
+/* ========= Preset Components ========= */
+.PresetSelect {
+    padding: 8px;
+    margin: 4px 0;
+    border-radius: 4px;
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+.PresetSelect label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: 500;
+}
+
+.preset-actions {
+    margin-top: 15px;
+    padding-top: 15px;
+    border-top: 1px solid rgba(255,255,255,0.2);
+    text-align: right;
+}
+
+.PresetButton {
+    background-color: var(--surface-dark);
+    color: var(--text-color);
+    border: none;
+    border-radius: 4px;
+    padding: 8px 16px;
+    cursor: pointer;
+    transition: all var(--transition);
+}
+
+.PresetButton:hover {
+    color: var(--text-color);
+    background-color: var(--secondary-color);
+    transform: translateY(-1px);
+}

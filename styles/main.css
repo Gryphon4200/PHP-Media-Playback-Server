@@ -1,0 +1,150 @@
+/* ========= Header Section ========= */
+.header-section {
+    text-align: center;
+    margin: 20px 0;
+    padding: 20px;
+}
+
+.header-section h1 {
+    margin: 0 0 10px 0;
+    font-size: 2em;
+    color: var(--text-color);
+}
+
+.server-info {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    flex-wrap: wrap;
+    opacity: 0.8;
+    font-size: 0.9em;
+}
+
+.file-count {
+    color: var(--primary-color);
+    font-weight: bold;
+}
+
+/* ========= File List ========= */
+.file-list-container {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 0 20px;
+}
+
+.menu {
+    margin: auto;
+    background-color: var(--surface-color);
+    border-collapse: collapse;
+    width: 100%;
+    border-radius: var(--border-radius);
+    overflow: hidden;
+    box-shadow: var(--shadow);
+}
+
+.menu thead {
+    background-color: var(--surface-dark);
+}
+
+.header-row {
+    background-color: var(--surface-dark) !important;
+    color: var(--text-color);
+}
+
+.header-row th {
+    padding: 12px 16px;
+    text-align: left;
+    font-weight: bold;
+    border-bottom: 2px solid #333;
+}
+
+.row {
+    color: var(--text-dark);
+    background-color: var(--surface-color);
+    border-bottom: 1px solid var(--surface-dark);
+    transition: all var(--transition);
+}
+
+.row:hover {
+    color: var(--text-color);
+    background-color: var(--text-dark);
+    cursor: pointer;
+    transform: translateX(2px);
+}
+
+.row.selected {
+    color: var(--text-color) !important;
+    background-color: var(--secondary-color) !important;
+}
+
+.file {
+    padding: 12px 8px 12px 16px;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.file-icon {
+    font-size: 1.2em;
+    flex-shrink: 0;
+}
+
+.filename {
+    flex-grow: 1;
+    min-width: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.file-info {
+    font-size: 0.8em;
+    opacity: 0.7;
+    margin-left: auto;
+    flex-shrink: 0;
+}
+
+.remove {
+    padding: 12px 16px;
+    text-align: center;
+    font-weight: bold;
+    min-width: 40px;
+    transition: background-color var(--transition);
+    cursor: pointer;
+}
+
+.remove:hover {
+    background-color: #c44;
+    color: var(--text-color);
+}
+
+/* ========= Status Monitor ========= */
+.file-monitor-status {
+    position: fixed;
+    top: 10px;
+    right: 10px;
+    padding: 8px 12px;
+    border-radius: 6px;
+    font-size: 12px;
+    z-index: 1000;
+    font-weight: 500;
+}
+
+.status-monitoring {
+    background: #d4edda;
+    color: #155724;
+    border: 1px solid #c3e6cb;
+}
+
+.status-updating {
+    background: #fff3cd;
+    color: #856404;
+    border: 1px solid #ffeaa7;
+}
+
+.status-error {
+    background: #f8d7da;
+    color: #721c24;
+    border: 1px solid #f5c6cb;
+}
