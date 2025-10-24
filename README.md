@@ -148,8 +148,8 @@ RequiredBy=network.target
 
 ### Clone the Repository
 ```
-git clone https://github.com/Gryphon4200/Media-Playback-Server.git
-cd Media-Playback-Server
+git clone https://github.com/Gryphon4200/PHP-Media-Playback-Server.git
+cd PHP-Media-Playback-Server
 ```
 
 ## Configure the Application
@@ -168,3 +168,12 @@ Path Options:
 "./" - Relative path (recommended for portability)  
 "/absolute/path/to/media/" - Absolute path  
 "C:\\Server\\" - Windows absolute path  
+
+## Presets
+
+The purpose of the presets are for quick remote updates. Mostly for use with a Stream Deck.
+Just create a button that sends a GET command to:
+```
+http://localhost:8080/update.php?preset=3
+```
+You can add as many presets as you'd like.
