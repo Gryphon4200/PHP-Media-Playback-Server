@@ -1,6 +1,9 @@
 {
-    "path": ".\\",
-    "1": "1080p-3qmj7oaige168170.jpg",
-    "2": "g3aQnL.webp",
-    "3": "Smile.png"
+    "path": ".\/",
+    "debug": false,
+    "auto_refresh": 0,
+    "kiosk_mode": false,
+    "1": "welcome.jpg",
+    "2": "sample_video.mp4",
+    "3": "sample_audio.mp3"
 }

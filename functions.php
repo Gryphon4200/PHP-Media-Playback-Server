@@ -2,141 +2,8 @@
 
 /**
  * Core Functions - Media Server Configuration and File Management
- * Includes first-run setup and cross-platform compatibility
+ * Cross-platform compatible (Windows, Linux, macOS)
  */
-
-// ========= First-Run Setup Functions =========
-
-function isFirstRun() {
-    return !file_exists('config.json') || !file_exists('image.txt') || !is_dir('Media');
-}
-
-function createDefaultConfig() {
-    $default_config = [
-        "path" => "./",
-        "debug" => false,
-        "auto_refresh" => 0,
-        "kiosk_mode" => false,
-        "1" => "welcome.jpg",
-        "2" => "sample_video.mp4",
-        "3" => "sample_audio.mp3"
-    ];
-    
-    $json_content = json_encode($default_config, JSON_PRETTY_PRINT);
-    return file_put_contents('config.json', $json_content) !== false;
-}
-
-function createDefaultImageTxt() {
-    $default_content = "welcome.jpg|" . time();
-    return file_put_contents('image.txt', $default_content) !== false;
-}
-
-function createMediaDirectory() {
-    if (!is_dir('Media')) {
-        if (!mkdir('Media', 0755, true)) {
-            return false;
-        }
-    }
-    
-    // Create a welcome file so the directory isn't empty
-    $welcome_content = createWelcomeImage();
-    if ($welcome_content) {
-        file_put_contents('Media/welcome.jpg', $welcome_content);
-    }
-    
-    // Create sample documentation
-    createMediaDocumentation();
-    
-    return true;
-}
-
-function createWelcomeImage() {
-    // Create a simple SVG welcome image
-    $svg_content = '<?xml version="1.0" encoding="UTF-8"?>
-<svg width="800" height="600" xmlns="http://www.w3.org/2000/svg">
-    <defs>
-        <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" style="stop-color:#4CAF50;stop-opacity:1" />
-            <stop offset="100%" style="stop-color:#2E7D32;stop-opacity:1" />
-        </linearGradient>
-    </defs>
-    <rect width="800" height="600" fill="url(#bg)"/>
-    <text x="400" y="250" font-family="Arial, sans-serif" font-size="48" font-weight="bold" 
-          text-anchor="middle" fill="white">PHP Media Server</text>
-    <text x="400" y="300" font-family="Arial, sans-serif" font-size="24" 
-          text-anchor="middle" fill="white">Welcome to your media playback system</text>
-    <text x="400" y="350" font-family="Arial, sans-serif" font-size="18" 
-          text-anchor="middle" fill="white">Upload media files to get started</text>
-    <text x="400" y="450" font-family="Arial, sans-serif" font-size="14" 
-          text-anchor="middle" fill="rgba(255,255,255,0.8)">System initialized: ' . date('Y-m-d H:i:s') . '</text>
-</svg>';
-    
-    return $svg_content;
-}
-
-function createMediaDocumentation() {
-    $media_dir = 'Media/';
-    
-    $readme_content = "# Media Directory
-
-This directory contains your media files for the playback server.
-
-## Supported File Types:
-- Video: MP4, AVI, MOV, WMV, WebM, MKV
-- Audio: MP3, WAV, OGG, AAC, FLAC
-- Images: JPG, PNG, GIF, BMP, WebP, SVG
-
-## Getting Started:
-1. Upload media files using the web interface
-2. Configure presets to assign files to specific slots
-3. Use the display system to show your content
-
-## File Management:
-- Files are automatically detected and displayed
-- Delete files using the 'X' button in the interface
-- Large files (>500MB) may take longer to upload
-
-Generated: " . date('Y-m-d H:i:s') . "
-Server: " . php_uname() . "
-";
-    
-    file_put_contents($media_dir . 'README.txt', $readme_content);
-}
-
-function performFirstRunSetup() {
-    $setup_results = [
-        'config' => false,
-        'image_txt' => false,
-        'media_dir' => false,
-        'samples' => false
-    ];
-    
-    try {
-        // Create config.json
-        $setup_results['config'] = createDefaultConfig();
-        
-        // Create image.txt
-        $setup_results['image_txt'] = createDefaultImageTxt();
-        
-        // Create Media directory with samples
-        $setup_results['media_dir'] = createMediaDirectory();
-        $setup_results['samples'] = file_exists('Media/README.txt');
-        
-        return $setup_results;
-        
-    } catch (Exception $e) {
-        error_log("First-run setup error: " . $e->getMessage());
-        return $setup_results;
-    }
-}
-
-function getFirstRunStatus() {
-    if (!isFirstRun()) {
-        return null; // Not first run
-    }
-    
-    return performFirstRunSetup();
-}
 
 // ========= Error Handling Functions =========
 
@@ -276,9 +143,14 @@ $Presets = [];
 
 try {
     // Check for first run - but don't handle it here, let index.php decide
-    if (isFirstRun()) {
-        // Don't load configuration yet - index.php will handle first run
-        return;
+    // We need to include firstrun.php for the isFirstRun() function
+    if (file_exists('firstrun.php')) {
+        include_once 'firstrun.php';
+        
+        if (isFirstRun()) {
+            // Don't load configuration yet - index.php will handle first run
+            return;
+        }
     }
     
     // Load configuration
@@ -365,8 +237,13 @@ function showDebugInfo() {
     }
 }
 
-// Call debug info if enabled
-if (!isFirstRun()) {
+// Call debug info if enabled and not in first-run mode
+if (file_exists('firstrun.php')) {
+    include_once 'firstrun.php';
+    if (!isFirstRun()) {
+        showDebugInfo();
+    }
+} else {
     showDebugInfo();
 }
 
