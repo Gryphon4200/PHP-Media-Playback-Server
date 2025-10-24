@@ -1,82 +1,84 @@
-<!DOCTYPE html>
-<html>
- <head>
-	<title>Display Image</title>
-	<style type="text/css">
-        * {
-            padding: 0;
-            margin: 0;
-            box-sizing: border-box;
-        }
+<?php
+// Read the current media file from image.txt
+$current_media = '';
+$current_timestamp = '';
+$media_path = '';
 
-        body {
-            overflow: hidden; /* Hide scrollbars */
-        }
-
-		img {
-            width: 100%;
-            height: 100vh;
-            object-fit: cover;
-		}
-	</style>
- </head>
- <body>
-	<?php
-    // Read the contents of the text file
-		$file_contents = file_get_contents("image.txt");
-
-		// Split the contents into an array using a delimiter
-		$file_info = explode("|", $file_contents);
-
-		// Get the filename and path
-		$file_name = trim((string) $file_info[0]);
-		$file_signature = trim((string) $file_info[1]);
-    
-    if (substr($file_name,-3) == "mp4") {
-      // Display video
-      echo " <video controls autoplay loop>\n";
-      echo "  <source src=\"Media\\$file_name\" type=\"video/mp4\">\n";
-      echo "  Your browser does not support the video tag.\n";
-      echo " </video>\n";
-    } else {
-      // Display the image
-      echo "<img src='Media/{$file_name}' alt='{$file_name}'>";
+if (file_exists('image.txt')) {
+    $content = trim(file_get_contents('image.txt'));
+    $parts = explode('|', $content);
+    if (count($parts) >= 1) {
+        $current_media = trim($parts[0]);
+        $current_timestamp = isset($parts[1]) ? trim($parts[1]) : '';
+        $media_path = 'Media/' . $current_media;
     }
-      
-    
-    ?>
-</body>
-<script src="https://cdn.jsdelivr.net/npm/md5-js-tools@1.0.2/lib/md5.min.js"></script>
-<script>
-
-function checkForChanges() {
-  // Make a request to the image.txt file on localhost:8080
-  fetch('image.txt')
-    .then(response => response.text())
-    .then(data => {
-      // Calculate the data signature using a hash function (e.g. SHA-256)
-      const dataSignature = MD5.generate(data);
-      // Check if the data signature has changed since the last check
-      if (dataSignature !== localStorage.getItem('lastDataSignature')) {
-        // If the data signature has changed, reload the page
-        location.reload();
-      } else {
-        // If the data signature hasn't changed, schedule the next check
-        setTimeout(checkForChanges, 5000);
-      }
-      // Store the current data signature for the next check
-      localStorage.setItem('lastDataSignature', dataSignature);
-    })
-    .catch(error => {
-      // Handle any errors that occur during the fetch
-      console.error(error);
-      // Schedule the next check
-      setTimeout(checkForChanges, 5000);
-    });
 }
-
-// Start checking for changes
-checkForChanges();
-
-</script>
+?>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Display</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+        }
+        
+        body {
+            background: #000;
+            overflow: hidden;
+        }
+        
+        img, video {
+            width: 100vw;
+            height: 100vh;
+        }
+    </style>
+</head>
+<body>
+    <?php if ($current_media && file_exists($media_path)): ?>
+        <?php
+        $extension = strtolower(pathinfo($current_media, PATHINFO_EXTENSION));
+        $video_extensions = ['mp4', 'webm', 'ogg', 'avi', 'mov', 'wmv'];
+        ?>
+        
+        <?php if (in_array($extension, $video_extensions)): ?>
+            <video src="<?php echo htmlspecialchars($media_path); ?>" autoplay loop></video>
+        <?php else: ?>
+            <img src="<?php echo htmlspecialchars($media_path); ?>" alt="Display">
+        <?php endif; ?>
+        
+    <?php else: ?>
+        <div style="color: white; text-align: center; padding: 50px;">
+            <h2>No media to display</h2>
+            <p><?php echo $current_media ? 'File not found: ' . htmlspecialchars($current_media) : 'No media file specified'; ?></p>
+        </div>
+    <?php endif; ?>
+    
+    <script>
+        let currentTimestamp = '<?php echo $current_timestamp; ?>';
+        
+        function checkForUpdate() {
+            fetch('image.txt')
+                .then(response => response.text())
+                .then(data => {
+                    const parts = data.trim().split('|');
+                    const newTimestamp = parts[1] || '';
+                    
+                    // Only refresh if the timestamp has changed
+                    if (newTimestamp !== currentTimestamp) {
+                        window.location.reload();
+                    }
+                })
+                .catch(error => {
+                    console.log('Check failed:', error);
+                });
+        }
+        
+        // Check for updates every 2 seconds, but only refresh if changed
+        setInterval(checkForUpdate, 2000);
+    </script>
+</body>
 </html>

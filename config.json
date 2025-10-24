@@ -1,9 +1,5 @@
 {
-    "path": ".\/",
-    "debug": false,
-    "auto_refresh": 0,
-    "kiosk_mode": false,
-    "1": "welcome.jpg",
-    "2": "sample_video.mp4",
-    "3": "sample_audio.mp3"
+    "path": ".\\",
+    "1": "Color Calibration Chart 16x9.jpg",
+    "2": "Color Calibration Chart Grid.jpg"
 }
