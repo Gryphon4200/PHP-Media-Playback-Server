@@ -141,12 +141,12 @@ input[type="file"]:hover {
     transition: all 0.3s ease;
     max-width: 400px;
 }
-
+/*
 .notification.show {
     opacity: 1;
     animation: slideIn 0.3s ease;
 }
-
+*/
 .notification-info {
     background-color: var(--secondary-color);
     color: var(--text-color);

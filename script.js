@@ -137,7 +137,7 @@ function createFileRow(filename, fileData) {
     // Create file cell with icon and info
     const fileCell = document.createElement('td');
     fileCell.className = 'file';
-    fileCell.onclick = function() { menuItemClicked(filename); };
+    fileCell.onclick = function() { displayFile(filename); };  // <-- FIXED THIS LINE
     fileCell.innerHTML = `
         <span class="file-icon">${fileData.icon}</span>
         <span class="filename">${escapeHtml(filename)}</span>
@@ -214,7 +214,7 @@ function ToggleElement() {
         menu.classList.remove('show');
     }
 }
-
+/*
 function menuItemClicked(filename) {
     console.log("Selected file: " + filename);
     
@@ -235,7 +235,7 @@ function menuItemClicked(filename) {
     showNotification(`Selected: ${filename}`, 'info');
 
 }
-
+*/
 function DeleteFile(filename) {
     if (!confirm(`Are you sure you want to delete '${filename}'?\n\nThis action cannot be undone.`)) {
         return;

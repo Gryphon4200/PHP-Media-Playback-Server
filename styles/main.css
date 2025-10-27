@@ -148,3 +148,95 @@
     color: #721c24;
     border: 1px solid #f5c6cb;
 }
+
+/* ========= Current Media Display ========= */
+.current-media-section {
+    max-width: 900px;
+    margin: 0 auto 30px;
+    padding: 0 20px;
+}
+
+.current-media-section h3 {
+    margin-bottom: 15px;
+    color: var(--text-color);
+}
+
+.current-media-display {
+    background: var(--surface-color);
+    border-radius: var(--border-radius);
+    padding: 15px;
+    box-shadow: var(--shadow);
+}
+
+.media-info {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.media-icon {
+    font-size: 2em;
+    flex-shrink: 0;
+}
+
+.media-details {
+    flex-grow: 1;
+}
+
+.media-filename {
+    font-weight: bold;
+    font-size: 1.1em;
+    color: var(--text-color);
+}
+
+.media-timestamp {
+    font-size: 0.9em;
+    opacity: 0.8;
+    color: var(--text-color);
+}
+
+.media-actions {
+    display: flex;
+    gap: 10px;
+}
+
+/* ========= Button Styles ========= */
+.btn-small {
+    padding: 6px 12px;
+    font-size: 12px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    text-decoration: none;
+    display: inline-block;
+    transition: all var(--transition);
+}
+
+.btn-small:hover {
+    transform: translateY(-1px);
+}
+
+.btn-display {
+    background: var(--primary-color);
+    color: var(--text-color);
+}
+
+.btn-delete {
+    background: var(--error-color);
+    color: var(--text-color);
+}
+
+.file-actions {
+    display: flex;
+    gap: 5px;
+    justify-content: center;
+}
+
+/* ========= Upload Progress ========= */
+.progress-info {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 5px;
+    font-size: 0.9em;
+    color: var(--text-color);
+}
