@@ -34,6 +34,7 @@ if (file_exists('image.txt')) {
         img, video {
             width: 100vw;
             height: 100vh;
+            object-fit: fill;
         }
     </style>
 </head>
