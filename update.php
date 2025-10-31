@@ -1,6 +1,9 @@
 <?php
 include_once 'functions.php';
 
+// Always set JSON content type for all responses
+header('Content-Type: application/json');
+
 try {
     // Handle GET request for preset selection
     if (isset($_GET["preset"])) {
@@ -15,7 +18,13 @@ try {
         $text = $filename . "|" . $timestamp;
         
         if (file_put_contents("image.txt", $text, LOCK_EX) !== false) {
-            echo "Success: Preset " . htmlspecialchars($preset_key) . " activated";
+            echo json_encode([
+                'success' => true, 
+                'message' => 'Preset activated successfully',
+                'preset_key' => $preset_key,
+                'filename' => $filename,
+                'timestamp' => $timestamp
+            ]);
         } else {
             throw new Exception("Failed to write display file");
         }
@@ -34,21 +43,25 @@ try {
         $text = $filename . "|" . $timestamp;
         
         if (file_put_contents("image.txt", $text, LOCK_EX) !== false) {
-            echo "Success: Now displaying " . htmlspecialchars($filename);
+            echo json_encode([
+                'success' => true, 
+                'message' => 'Media updated successfully',
+                'filename' => $filename,
+                'timestamp' => $timestamp
+            ]);
         } else {
             throw new Exception("Failed to write display file");
         }
     }
     // Handle POST requests (config updates, deletes, etc.)
     elseif ($_SERVER['REQUEST_METHOD'] === 'POST') {
-        header('Content-Type: application/json');
-        
         $update_type = $_POST["update"] ?? '';
         
         switch ($update_type) {
             case "ConfigFileUpdate":
                 // Build new configuration
                 $json_data = ['path' => $ServerPath];
+                $updated_presets = [];
                 
                 foreach ($_POST as $key => $value) {
                     if ($key !== "update") {
@@ -57,6 +70,7 @@ try {
                         
                         if (!empty($clean_key) && !empty($clean_value)) {
                             $json_data[$clean_key] = $clean_value;
+                            $updated_presets[$clean_key] = $clean_value;
                         }
                     }
                 }
@@ -67,7 +81,12 @@ try {
                     throw new Exception("Failed to write config.json");
                 }
                 
-                echo json_encode(['success' => true, 'message' => 'Configuration updated successfully']);
+                echo json_encode([
+                    'success' => true, 
+                    'message' => 'Configuration updated successfully',
+                    'updated_presets' => $updated_presets,
+                    'preset_count' => count($updated_presets)
+                ]);
                 break;
                 
             case "Delete":
@@ -79,14 +98,46 @@ try {
                 }
                 
                 if (unlink($file_path)) {
-                    echo json_encode(['success' => true, 'message' => 'File deleted successfully']);
+                    echo json_encode([
+                        'success' => true, 
+                        'message' => 'File deleted successfully',
+                        'deleted_file' => $filename
+                    ]);
                 } else {
-                    throw new Exception("Failed to delete file");
+                    throw new Exception("Failed to delete file: " . htmlspecialchars($filename));
+                }
+                break;
+                
+            case "UpdateDisplay":
+                // Handle legacy POST display updates
+                $filename = basename($_POST["filename"] ?? '');
+                $timestamp = $_POST["timestamp"] ?? time();
+                
+                if (empty($filename)) {
+                    throw new Exception("No filename provided");
+                }
+                
+                $full_path = $MediaPath . $filename;
+                if (!file_exists($full_path)) {
+                    throw new Exception("File not found: " . htmlspecialchars($filename));
+                }
+                
+                $text = $filename . "|" . $timestamp;
+                
+                if (file_put_contents("image.txt", $text, LOCK_EX) !== false) {
+                    echo json_encode([
+                        'success' => true, 
+                        'message' => 'Display updated successfully',
+                        'filename' => $filename,
+                        'timestamp' => $timestamp
+                    ]);
+                } else {
+                    throw new Exception("Failed to write display file");
                 }
                 break;
                 
             default:
-                throw new Exception("Invalid update type");
+                throw new Exception("Invalid update type: " . htmlspecialchars($update_type));
         }
     }
     else {
@@ -94,11 +145,12 @@ try {
     }
     
 } catch (Exception $e) {
-    if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-        header('Content-Type: application/json');
-        echo json_encode(['success' => false, 'message' => $e->getMessage()]);
-    } else {
-        echo "Error: " . htmlspecialchars($e->getMessage());
-    }
+    // Ensure we always return JSON for errors
+    http_response_code(400);
+    echo json_encode([
+        'success' => false, 
+        'message' => $e->getMessage(),
+        'error_code' => 'UPDATE_ERROR'
+    ]);
 }
 ?>

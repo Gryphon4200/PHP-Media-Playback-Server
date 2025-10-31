@@ -1,13 +1,12 @@
 /**
  * Enhanced Media Server JavaScript with Partial Refresh
  */
-
+/*
 // Global variables
-let lastFileCount = 0;
 let lastModified = 0;
 let checkInterval = null;
 let isUpdating = false; // Prevent multiple simultaneous updates
-
+*/
 // Initialize when DOM is loaded
 document.addEventListener('DOMContentLoaded', function() {
     initializeApp();

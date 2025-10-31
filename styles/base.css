@@ -37,7 +37,7 @@ html, body {
     background-color: var(--background-color);
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     width: 100%;
-    height: 100vh;
+    min-height: 100vh;
     overflow-x: hidden;
     margin: 0;
     padding: 0;
@@ -54,6 +54,31 @@ img {
 }
 
 /* ========= Utility Classes ========= */
-.hidden { display: none; }
-.center { text-align: center; }
-.kiosk-mode { cursor: none; }
+.hidden { 
+    display: none; 
+}
+
+.center { 
+    text-align: center; 
+}
+
+.kiosk-mode { 
+    cursor: none; 
+}
+
+/* ========= Layout Stability ========= */
+.header-section {
+    min-height: 80px;
+}
+
+.current-media-section {
+    min-height: 100px;
+}
+
+.file-list-container {
+    min-height: 300px;
+}
+
+.menu {
+    min-height: 200px;
+}
