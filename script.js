@@ -1,12 +1,7 @@
 /**
  * Enhanced Media Server JavaScript with Partial Refresh
  */
-/*
-// Global variables
-let lastModified = 0;
-let checkInterval = null;
-let isUpdating = false; // Prevent multiple simultaneous updates
-*/
+
 // Initialize when DOM is loaded
 document.addEventListener('DOMContentLoaded', function() {
     initializeApp();
@@ -267,7 +262,10 @@ function Update_Presets() {
         }
     });
     
-    console.log('Updating presets:', presets);
+    // Only log if debug is enabled
+    if (window.mediaServerData && window.mediaServerData.debug) {
+        console.log('Updating presets:', presets);
+    }
     
     // Create FormData
     const formData = new FormData();
@@ -286,18 +284,25 @@ function Update_Presets() {
         }
     })
     .then(response => {
-        console.log('Response status:', response.status);
-        console.log('Response headers:', response.headers);
+        if (window.mediaServerData && window.mediaServerData.debug) {
+            console.log('Response status:', response.status);
+            console.log('Response headers:', response.headers);
+        }
         return response.text(); // Get raw text first
     })
     .then(data => {
-        console.log('Raw response from server:');
-        console.log(data); // This will show us exactly what we're getting
+        if (window.mediaServerData && window.mediaServerData.debug) {
+            console.log('Raw response from server:');
+            console.log(data); // This will show us exactly what we're getting
+        }
         
         // Try to parse as JSON
         try {
             const jsonData = JSON.parse(data);
-            console.log('Successfully parsed JSON:', jsonData);
+            
+            if (window.mediaServerData && window.mediaServerData.debug) {
+                console.log('Successfully parsed JSON:', jsonData);
+            }
             
             if (jsonData.success) {
                 showNotification('Presets updated successfully!', 'success');
@@ -306,13 +311,17 @@ function Update_Presets() {
                 showNotification('Error: ' + jsonData.message, 'error');
             }
         } catch (e) {
-            console.error('JSON parse failed. Raw response was:', data.substring(0, 500));
-            showNotification('Server returned HTML instead of JSON. Check console for details.', 'error');
+            if (window.mediaServerData && window.mediaServerData.debug) {
+                console.error('JSON parse failed. Raw response was:', data.substring(0, 500));
+            }
+            showNotification('Server returned unexpected response. Please try again.', 'error');
         }
     })
     .catch(error => {
-        console.error('Network error:', error);
-        showNotification('Network error: ' + error.message, 'error');
+        if (window.mediaServerData && window.mediaServerData.debug) {
+            console.error('Network error:', error);
+        }
+        showNotification('Network error. Please check your connection.', 'error');
     });
     
     return false; // Prevent form submission

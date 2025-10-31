@@ -139,21 +139,24 @@
      <h3>📁 Upload Media File</h3>
      <button class="modal-close" onclick="closeUploadModal()">&times;</button>
     </div>
-            
+               
     <div class="modal-body">
      <form id="uploadForm" action="upload.php" method="post" enctype="multipart/form-data">
+      <!-- Separate the file input completely -->
+      <input type="file" name="fileToUpload" id="fileToUpload" accept="audio/*,video/*,image/*" required style="display: none;">
+                
+      <!-- Click area without the input inside -->
       <div class="upload-area" id="uploadArea">
        <div class="upload-icon">📁</div>
        <p>Choose a file or drag and drop here</p>
        <p class="upload-help">Supported: Video, Audio, Images (Max: 500MB)</p>
-       <input type="file" name="fileToUpload" id="fileToUpload" accept="audio/*,video/*,image/*" required style="display: none;">
       </div>
 
       <div id="selectedFile" class="selected-file" style="display: none;">
        <p><strong>Selected:</strong> <span id="selectedFileName"></span></p>
        <p><strong>Size:</strong> <span id="selectedFileSize"></span></p>
       </div>
-                    
+                        
       <div id="uploadProgress" class="upload-progress" style="display: none;">
        <div class="progress-header">
         <span id="progressText">Uploading...</span>
@@ -167,12 +170,11 @@
         <span id="progressTime">--</span>
        </div>
       </div>
-                    
+                        
       <div class="modal-actions">
        <button type="button" onclick="closeUploadModal()" class="btn-secondary" id="cancelBtn">Cancel</button>
        <button type="submit" class="btn-primary" id="uploadBtn" disabled>Upload File</button>
       </div>
-
      </form>
     </div>
    </div>

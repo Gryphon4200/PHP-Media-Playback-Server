@@ -1,0 +1,16 @@
+# Upload optimization
+php_value upload_max_filesize 1G
+php_value post_max_size 1G
+php_value max_execution_time 300
+php_value max_input_time 300
+php_value memory_limit 1G
+php_value max_input_vars 3000
+
+# Disable compression for uploads
+SetEnvIfNoCase Request_URI \
+    \.(?:gif|jpe?g|png|mp4|avi|mov|wmv|flv|mp3|wav|ogg)$ no-gzip dont-vary
+
+# Disable mod_deflate for uploads
+<LocationMatch "upload\.php">
+    SetEnv no-gzip 1
+</LocationMatch>

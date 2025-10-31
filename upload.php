@@ -1,18 +1,25 @@
 <?php
-// Disable output buffering for faster uploads
-if (ob_get_level()) {
+// Enhanced upload configuration
+ini_set('max_execution_time', 0);          // No time limit
+ini_set('memory_limit', '1G');             // Increase memory
+ini_set('post_max_size', '1G');            // Large POST size
+ini_set('upload_max_filesize', '1G');      // Large file size
+ini_set('max_input_time', 300);            // 5 minutes input time
+ini_set('output_buffering', 0);            // Disable output buffering
+
+// Disable all output buffering
+while (ob_get_level()) {
     ob_end_clean();
 }
 
-// Set time limit for large uploads
-set_time_limit(300);
-
-// Increase memory limit temporarily
-ini_set('memory_limit', '512M');
+// Flush any existing output
+if (function_exists('apache_setenv')) {
+    apache_setenv('no-gzip', 1);
+}
 
 include_once 'functions.php';
 
-// Function to format file size
+// Enhanced file size formatter
 function formatFileSize($size) {
     $units = array('B', 'KB', 'MB', 'GB');
     for ($i = 0; $size > 1024 && $i < count($units) - 1; $i++) {
@@ -31,7 +38,7 @@ if (!isset($_FILES['fileToUpload'])) {
 } else {
     $upload_error = $_FILES['fileToUpload']['error'];
     
-    // Enhanced error handling
+    // Enhanced error handling (same as before)
     switch ($upload_error) {
         case UPLOAD_ERR_OK:
             break;
@@ -64,7 +71,7 @@ if (!isset($_FILES['fileToUpload'])) {
         $uploaded_file = $_FILES['fileToUpload'];
         $filename = basename($uploaded_file['name']);
         
-        // Sanitize filename for better compatibility
+        // Sanitize filename
         $filename = preg_replace('/[^a-zA-Z0-9._\-\s()]/', '', $filename);
         $target_file = $MediaPath . $filename;
         
@@ -72,23 +79,38 @@ if (!isset($_FILES['fileToUpload'])) {
         if (file_exists($target_file)) {
             $error_message = "File '$filename' already exists.";
         }
-        // Quick file size check
-        elseif ($uploaded_file['size'] > 500 * 1024 * 1024) { // 500MB
-            $error_message = "File too large (" . formatFileSize($uploaded_file['size']) . "). Maximum: 500MB.";
+        // File size check (1GB limit)
+        elseif ($uploaded_file['size'] > 1024 * 1024 * 1024) {
+            $error_message = "File too large (" . formatFileSize($uploaded_file['size']) . "). Maximum: 1GB.";
         }
-        // Use move_uploaded_file for better performance
-        elseif (move_uploaded_file($uploaded_file['tmp_name'], $target_file)) {
-            $upload_success = true;
-            $uploaded_filename = $filename;
-        } else {
-            $error_message = "Failed to save file. Check directory permissions and disk space.";
+        else {
+            // Enhanced file moving with error checking
+            if (move_uploaded_file($uploaded_file['tmp_name'], $target_file)) {
+                // Verify the file was written correctly
+                if (file_exists($target_file) && filesize($target_file) == $uploaded_file['size']) {
+                    $upload_success = true;
+                    $uploaded_filename = $filename;
+                    
+                    // Set proper permissions
+                    chmod($target_file, 0644);
+                } else {
+                    $error_message = "File transfer incomplete. Please try again.";
+                    // Clean up partial file
+                    if (file_exists($target_file)) {
+                        unlink($target_file);
+                    }
+                }
+            } else {
+                $error_message = "Failed to save file. Check directory permissions and disk space.";
+            }
         }
     }
 }
 
-// Return simple response for AJAX
+// AJAX response handling (same as before)
 if (isset($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest') {
     header('Content-Type: application/json');
+    header('Cache-Control: no-cache, must-revalidate');
     
     if ($upload_success) {
         echo json_encode([
