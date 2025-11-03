@@ -1,47 +1,22 @@
 /**
  * Main Application JavaScript for Media Server
  * Handles current media display, uploads, and UI interactions
+ * 
+ * Note: Initialization is handled by script.js to avoid conflicts
  */
 
-// Add this at the very beginning of main.js
-console.log('JavaScript loading started');
-document.documentElement.className += ' js';
+// Basic page loading indicators
+console.log('main.js loaded');
+document.documentElement.className += ' js-enabled';
 
-// Also add this simple fallback
-document.addEventListener('DOMContentLoaded', function() {
-    console.log('DOM Content Loaded');
-    document.body.classList.add('loaded');
-});
-
-// Backup - ensure page shows even if other JS fails
-window.addEventListener('load', function() {
-    console.log('Window loaded');
-    document.body.classList.add('loaded');
-});
-
-// Emergency fallback
+// Emergency CSS fallback only
 setTimeout(() => {
-    console.log('Emergency fallback triggered');
     document.body.classList.add('loaded');
-}, 1000);
+}, 500);
 
-
-// Global variables
+// Global variables specific to main.js functionality
 let mediaServerData = {};
-let lastFileCount = 0;
-let lastModified = 0;
-let isUpdating = false;
-
-// Initialize when DOM is loaded
-document.addEventListener('DOMContentLoaded', function() {
-    // Get data from PHP
-    if (window.mediaServerData) {
-        mediaServerData = window.mediaServerData;
-    }
-    
-    loadCurrentMedia();
-    initializeApp();
-});
+let isUploadInProgress = false;
 
 // ========= Current Media Functions =========
 
@@ -58,7 +33,7 @@ function loadCurrentMedia() {
             
             if (fileElement) fileElement.textContent = filename;
             if (timeElement) {
-                if (timestamp) {
+                if (timestamp && timestamp !== '') {
                     const date = new Date(parseInt(timestamp) * 1000);
                     timeElement.textContent = 'Updated: ' + date.toLocaleString();
                 } else {
@@ -72,7 +47,10 @@ function loadCurrentMedia() {
             
             if (fileElement) fileElement.textContent = 'Error loading';
             if (timeElement) timeElement.textContent = 'Check connection';
-            console.error('Failed to load current media:', error);
+            
+            if (window.mediaServerData && window.mediaServerData.debug) {
+                console.error('Failed to load current media:', error);
+            }
         });
 }
 
@@ -84,18 +62,88 @@ function refreshCurrentMedia() {
 }
 
 function displayFile(filename) {
-    console.log('Displaying file:', filename);
+    if (window.mediaServerData && window.mediaServerData.debug) {
+        console.log('Displaying file:', filename);
+    }
     
     const timestamp = Math.floor(Date.now() / 1000);
     const url = `update.php?file=${encodeURIComponent(filename)}&timestamp=${timestamp}`;
     
+    if (window.mediaServerData && window.mediaServerData.debug) {
+        console.log('Request URL:', url);
+    }
+    
     fetch(url)
-        .then(response => response.json())  // Now expecting JSON
+        .then(response => {
+            if (window.mediaServerData && window.mediaServerData.debug) {
+                console.log('Response status:', response.status);
+                console.log('Response headers:', response.headers.get('content-type'));
+            }
+            return response.text(); // Get as text first to see what we're getting
+        })
+        .then(rawData => {
+            if (window.mediaServerData && window.mediaServerData.debug) {
+                console.log('Raw response data:', rawData);
+            }
+            
+            // Try to parse as JSON
+            try {
+                const data = JSON.parse(rawData);
+                
+                if (window.mediaServerData && window.mediaServerData.debug) {
+                    console.log('Parsed JSON response:', data);
+                }
+                
+                if (data.success) {
+                    loadCurrentMedia();
+                    if (typeof showNotification === 'function') {
+                        showNotification(`Now displaying: ${data.filename}`, 'success');
+                    }
+                } else {
+                    if (typeof showNotification === 'function') {
+                        showNotification(`Error: ${data.message}`, 'error');
+                    }
+                }
+            } catch (e) {
+                // If JSON parsing fails, check if it's HTML (old format)
+                if (window.mediaServerData && window.mediaServerData.debug) {
+                    console.error('JSON parsing failed:', e);
+                    console.log('Trying to parse as HTML response...');
+                }
+                
+                if (rawData.includes('Success:') || rawData.includes('✅')) {
+                    loadCurrentMedia();
+                    if (typeof showNotification === 'function') {
+                        showNotification(`Now displaying: ${filename}`, 'success');
+                    }
+                } else {
+                    if (window.mediaServerData && window.mediaServerData.debug) {
+                        console.error('Unexpected response format:', rawData.substring(0, 200));
+                    }
+                    if (typeof showNotification === 'function') {
+                        showNotification('Error updating display - unexpected response', 'error');
+                    }
+                }
+            }
+        })
+        .catch(error => {
+            if (window.mediaServerData && window.mediaServerData.debug) {
+                console.error('Display error:', error);
+            }
+            if (typeof showNotification === 'function') {
+                showNotification('Error updating display - network error', 'error');
+            }
+        });
+}
+
+function activatePreset(presetKey) {
+    fetch(`update.php?preset=${encodeURIComponent(presetKey)}`)
+        .then(response => response.json())
         .then(data => {
             if (data.success) {
                 loadCurrentMedia();
                 if (typeof showNotification === 'function') {
-                    showNotification(`Now displaying: ${data.filename}`, 'success');
+                    showNotification(`Preset activated: ${presetKey}`, 'success');
                 }
             } else {
                 if (typeof showNotification === 'function') {
@@ -104,21 +152,12 @@ function displayFile(filename) {
             }
         })
         .catch(error => {
-            console.error('Display error:', error);
-            if (typeof showNotification === 'function') {
-                showNotification('Error updating display', 'error');
+            if (window.mediaServerData && window.mediaServerData.debug) {
+                console.error('Preset activation error:', error);
             }
-        });
-}
-
-function activatePreset(presetKey) {
-    fetch(`update.php?preset=${encodeURIComponent(presetKey)}`)
-        .then(response => {
-            window.location.reload();
-        })
-        .catch(error => {
-            console.error('Preset activation error:', error);
-            window.location.reload();
+            if (typeof showNotification === 'function') {
+                showNotification('Error activating preset', 'error');
+            }
         });
 }
 
@@ -133,6 +172,14 @@ function openUploadModal() {
 }
 
 function closeUploadModal() {
+    // Prevent closing during upload
+    if (isUploadInProgress) {
+        if (typeof showNotification === 'function') {
+            showNotification('Cannot close during upload. Please wait or cancel first.', 'warning');
+        }
+        return;
+    }
+    
     const modal = document.getElementById('uploadModal');
     if (modal) {
         modal.style.display = 'none';
@@ -160,13 +207,14 @@ function closeUploadModal() {
         
         if (cancelBtn) {
             cancelBtn.textContent = 'Cancel';
-            // Remove custom handlers
             cancelBtn.onclick = function() { closeUploadModal(); };
         }
         
         if (progressFill) progressFill.style.width = '0%';
         
-        console.log('Upload modal closed and reset');
+        if (window.mediaServerData && window.mediaServerData.debug) {
+            console.log('Upload modal closed and reset');
+        }
     }
 }
 
@@ -177,26 +225,34 @@ function initializeUploadModal() {
     const uploadForm = document.getElementById('uploadForm');
     
     if (!fileInput || !uploadArea || !uploadBtn) {
-        console.log('Upload modal elements not found');
+        if (window.mediaServerData && window.mediaServerData.debug) {
+            console.log('Upload modal elements not found - probably not on main page');
+        }
         return;
     }
     
-    console.log('Initializing upload modal...');
+    if (window.mediaServerData && window.mediaServerData.debug) {
+        console.log('Initializing upload modal...');
+    }
     
-    // Clear any existing event listeners by removing and re-adding the upload area
+    // Clear any existing event listeners by replacing the upload area
     const newUploadArea = uploadArea.cloneNode(true);
     uploadArea.parentNode.replaceChild(newUploadArea, uploadArea);
     
     // Update reference to the new element
     const finalUploadArea = document.getElementById('uploadArea');
     
-    // File selection handler - this should only fire once per selection
+    // File selection handler
     fileInput.addEventListener('change', function(e) {
-        console.log('File input change event fired');
+        if (window.mediaServerData && window.mediaServerData.debug) {
+            console.log('File input change event fired');
+        }
         
         const file = e.target.files[0];
         if (file) {
-            console.log('File selected:', file.name);
+            if (window.mediaServerData && window.mediaServerData.debug) {
+                console.log('File selected:', file.name);
+            }
             showSelectedFile(file);
             uploadBtn.disabled = false;
             
@@ -204,16 +260,17 @@ function initializeUploadModal() {
             finalUploadArea.style.display = 'none';
             document.getElementById('selectedFile').style.display = 'block';
         } else {
-            console.log('No file selected');
             finalUploadArea.style.display = 'block';
             document.getElementById('selectedFile').style.display = 'none';
             uploadBtn.disabled = true;
         }
     });
     
-    // Simple click handler - just trigger file input
+    // Simple click handler
     finalUploadArea.addEventListener('click', function(e) {
-        console.log('Upload area clicked');
+        if (window.mediaServerData && window.mediaServerData.debug) {
+            console.log('Upload area clicked');
+        }
         fileInput.click();
     });
     
@@ -238,7 +295,6 @@ function initializeUploadModal() {
         const files = e.dataTransfer.files;
         if (files.length > 0) {
             fileInput.files = files;
-            // Manually trigger the change event
             const changeEvent = new Event('change', { bubbles: true });
             fileInput.dispatchEvent(changeEvent);
         }
@@ -267,13 +323,18 @@ function showSelectedFile(file) {
 }
 
 function uploadWithProgress(file) {
-    console.log('Starting upload for:', file.name, file.size, 'bytes');
+    if (window.mediaServerData && window.mediaServerData.debug) {
+        console.log('Starting upload for:', file.name, file.size, 'bytes');
+    }
+    
+    // Set upload in progress flag
+    isUploadInProgress = true;
     
     const progressDiv = document.getElementById('uploadProgress');
     const progressFill = document.getElementById('progressFill');
     const progressText = document.getElementById('progressText');
     const progressPercent = document.getElementById('progressPercent');
-    const progressSpeed = document.getElementById('progressSpeed');
+    const progressSpeed = document.getElementById('progressSpeed');  
     const progressTime = document.getElementById('progressTime');
     const uploadBtn = document.getElementById('uploadBtn');
     const cancelBtn = document.getElementById('cancelBtn');
@@ -295,32 +356,28 @@ function uploadWithProgress(file) {
     let isUploadCancelled = false;
     let isUploadComplete = false;
     
-    console.log('Upload start time:', new Date(startTime).toLocaleTimeString());
-    
     // Enhanced cancel functionality
     function cancelUpload() {
-        console.log('Cancelling upload...');
+        if (window.mediaServerData && window.mediaServerData.debug) {
+            console.log('Cancelling upload...');
+        }
         isUploadCancelled = true;
+        isUploadInProgress = false; // Clear the flag
         
-        // Abort the XMLHttpRequest
         if (xhr && xhr.readyState !== XMLHttpRequest.DONE) {
             xhr.abort();
         }
         
-        // Reset UI immediately
         resetUploadUI();
-        
-        // Close modal
         closeUploadModal();
         
-        // Show notification
         if (typeof showNotification === 'function') {
             showNotification('Upload cancelled', 'info');
         }
     }
     
     function resetUploadUI() {
-        console.log('Resetting upload UI...');
+        isUploadInProgress = false; // Clear the flag
         
         if (uploadBtn) {
             uploadBtn.disabled = false;
@@ -337,19 +394,15 @@ function uploadWithProgress(file) {
     
     // Set up cancel button
     if (cancelBtn) {
-        // Remove any existing click handlers
         const newCancelBtn = cancelBtn.cloneNode(true);
         cancelBtn.parentNode.replaceChild(newCancelBtn, cancelBtn);
         
-        // Add new click handler
         newCancelBtn.addEventListener('click', function(e) {
             e.preventDefault();
             e.stopPropagation();
-            console.log('Cancel button clicked');
             cancelUpload();
         });
         
-        // Also update the onclick attribute as backup
         newCancelBtn.onclick = function(e) {
             e.preventDefault();
             e.stopPropagation();
@@ -357,17 +410,23 @@ function uploadWithProgress(file) {
             return false;
         };
         
-        // Change button text to show it's active
         newCancelBtn.textContent = 'Cancel Upload';
     }
     
-    // Progress tracking (with cancellation checks)
-    xhr.upload.addEventListener('progress', function(e) {
-        // Check if upload was cancelled
-        if (isUploadCancelled) {
-            console.log('Progress event received but upload was cancelled');
-            return;
+    // Add ESC key handler to cancel upload
+    function handleEscKey(e) {
+        if (e.key === 'Escape' && isUploadInProgress) {
+            e.preventDefault();
+            if (confirm('Cancel the current upload?')) {
+                cancelUpload();
+            }
         }
+    }
+    document.addEventListener('keydown', handleEscKey);
+    
+    // Progress tracking
+    xhr.upload.addEventListener('progress', function(e) {
+        if (isUploadCancelled) return;
         
         const currentTime = Date.now();
         const elapsedTotal = (currentTime - startTime) / 1000;
@@ -375,7 +434,6 @@ function uploadWithProgress(file) {
         if (e.lengthComputable) {
             const percentComplete = Math.round((e.loaded / e.total) * 100);
             
-            // Calculate speeds (same as before)
             const timeSinceLastUpdate = (currentTime - lastProgressTime) / 1000;
             const bytesSinceLastUpdate = e.loaded - lastProgressLoaded;
             
@@ -386,9 +444,10 @@ function uploadWithProgress(file) {
             
             const averageSpeed = elapsedTotal > 0 ? e.loaded / elapsedTotal : 0;
             
-            console.log(`Progress: ${percentComplete}% | Elapsed: ${elapsedTotal.toFixed(1)}s | Current Speed: ${formatFileSize(currentSpeed)}/s | Avg Speed: ${formatFileSize(averageSpeed)}/s`);
+            if (window.mediaServerData && window.mediaServerData.debug) {
+                console.log(`Progress: ${percentComplete}% | Elapsed: ${elapsedTotal.toFixed(1)}s | Current Speed: ${formatFileSize(currentSpeed)}/s | Avg Speed: ${formatFileSize(averageSpeed)}/s`);
+            }
             
-            // Update UI only if not cancelled
             if (!isUploadCancelled) {
                 if (progressFill) progressFill.style.width = percentComplete + '%';
                 if (progressPercent) progressPercent.textContent = percentComplete + '%';
@@ -410,19 +469,22 @@ function uploadWithProgress(file) {
     
     // Upload completion
     xhr.addEventListener('load', function() {
-        if (isUploadCancelled) {
-            console.log('Load event received but upload was cancelled');
-            return;
-        }
+        if (isUploadCancelled) return;
         
         isUploadComplete = true;
+        isUploadInProgress = false; // Clear the flag
+        
+        // Remove ESC key handler
+        document.removeEventListener('keydown', handleEscKey);
         
         const endTime = Date.now();
         const totalTime = (endTime - startTime) / 1000;
         
-        console.log('Upload completed at:', new Date(endTime).toLocaleTimeString());
-        console.log('Total upload time:', totalTime, 'seconds');
-        console.log('Average upload speed:', formatFileSize(file.size / totalTime) + '/s');
+        if (window.mediaServerData && window.mediaServerData.debug) {
+            console.log('Upload completed at:', new Date(endTime).toLocaleTimeString());
+            console.log('Total upload time:', totalTime, 'seconds');
+            console.log('Average upload speed:', formatFileSize(file.size / totalTime) + '/s');
+        }
         
         if (xhr.status === 200) {
             if (progressFill) progressFill.style.width = '100%';
@@ -452,6 +514,9 @@ function uploadWithProgress(file) {
                         showNotification(`File uploaded successfully in ${totalTime.toFixed(1)}s!`, 'success');
                     }
                 } else {
+                    if (window.mediaServerData && window.mediaServerData.debug) {
+                        console.error('Upload response:', xhr.responseText.substring(0, 200));
+                    }
                     throw new Error('Unexpected server response');
                 }
             }
@@ -467,14 +532,17 @@ function uploadWithProgress(file) {
     
     // Handle upload errors
     xhr.addEventListener('error', function() {
-        if (isUploadCancelled) {
-            console.log('Error event received but upload was already cancelled');
-            return;
-        }
+        if (isUploadCancelled) return;
+        
+        isUploadInProgress = false; // Clear the flag
+        document.removeEventListener('keydown', handleEscKey);
         
         const endTime = Date.now();
         const totalTime = (endTime - startTime) / 1000;
-        console.error('Upload error after', totalTime, 'seconds');
+        
+        if (window.mediaServerData && window.mediaServerData.debug) {
+            console.error('Upload error after', totalTime, 'seconds');
+        }
         
         resetUploadUI();
         
@@ -485,14 +553,22 @@ function uploadWithProgress(file) {
     
     // Handle upload abort (when cancelled)
     xhr.addEventListener('abort', function() {
-        console.log('Upload was aborted');
+        if (window.mediaServerData && window.mediaServerData.debug) {
+            console.log('Upload was aborted');
+        }
         isUploadCancelled = true;
+        isUploadInProgress = false; // Clear the flag
+        document.removeEventListener('keydown', handleEscKey);
         resetUploadUI();
     });
     
     // Handle timeout
     xhr.addEventListener('timeout', function() {
-        console.log('Upload timed out');
+        if (window.mediaServerData && window.mediaServerData.debug) {
+            console.log('Upload timed out');
+        }
+        isUploadInProgress = false; // Clear the flag
+        document.removeEventListener('keydown', handleEscKey);
         resetUploadUI();
         
         if (typeof showNotification === 'function') {
@@ -500,28 +576,15 @@ function uploadWithProgress(file) {
         }
     });
     
-    console.log('Sending upload request...');
+    if (window.mediaServerData && window.mediaServerData.debug) {
+        console.log('Sending upload request...');
+    }
     xhr.open('POST', 'upload.php');
     
     // Set a reasonable timeout (5 minutes)
     xhr.timeout = 300000;
     
     xhr.send(formData);
-}
-
-function resetUploadModal() {
-    setTimeout(() => {
-        const uploadBtn = document.getElementById('uploadBtn');
-        const progressFill = document.getElementById('progressFill');
-        
-        if (uploadBtn) {
-            uploadBtn.disabled = false;
-            uploadBtn.textContent = 'Upload File';
-        }
-        if (progressFill) {
-            progressFill.style.width = '0%';
-        }
-    }, 3000);
 }
 
 // ========= Utility Functions =========
@@ -539,52 +602,24 @@ function formatFileSize(bytes) {
     return Math.round(size * 100) / 100 + ' ' + units[unitIndex];
 }
 
-// ========= Initialize App =========
-
-function initializeApp() {
-    // Set initial values from PHP data
-    if (mediaServerData.initialFileCount !== undefined) {
-        lastFileCount = mediaServerData.initialFileCount;
-    }
-    
-    // Initialize upload modal
-    initializeUploadModal();
-    
-    // Start file monitoring (from script.js if available)
-    if (typeof startFileMonitoring === 'function') {
-        startFileMonitoring();
-    }
-    
-    // Initialize other features (from script.js if available)
-    if (typeof initializeUploadHandling === 'function') {
-        initializeUploadHandling();
-    }
-    
-    if (typeof initializeDisplaySettings === 'function') {
-        initializeDisplaySettings();
-    }
-    
-    if (typeof handleDragAndDrop === 'function') {
-        handleDragAndDrop();
-    }
-    
-    // Remove loading state
-    document.body.classList.add('loaded');
-    
-    console.log('Main application initialized');
-}
-
 // ========= Event Listeners =========
 
-// Close modal when clicking outside
 window.addEventListener('click', function(event) {
     const modal = document.getElementById('uploadModal');
     if (event.target === modal) {
-        closeUploadModal();
+        // Only close if no upload is in progress
+        if (!isUploadInProgress) {
+            closeUploadModal();
+        } else {
+            // Show a warning that upload is in progress
+            if (typeof showNotification === 'function') {
+                showNotification('Upload in progress. Please wait or cancel to close.', 'warning');
+            }
+        }
     }
 });
 
-// Ensure body shows even if JS fails
+// Final loading state fallback
 window.addEventListener('load', function() {
     setTimeout(() => {
         document.body.classList.add('loaded');

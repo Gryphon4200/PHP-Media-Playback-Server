@@ -1,8 +1,19 @@
 /**
  * Enhanced Media Server JavaScript with Partial Refresh
+ * Handles file monitoring, presets, and application initialization
  */
 
-// Initialize when DOM is loaded
+// Global variables for file monitoring and offline detection
+let lastModified = 0;
+let lastFileCount = 0;
+let checkInterval = null;
+let isUpdating = false;
+let consecutiveFailures = 0;
+let maxFailures = 3;
+let isServerOffline = false;
+let offlineCheckInterval = 30000; // 30 seconds
+
+// Initialize when DOM is loaded - this is the ONLY initialization point
 document.addEventListener('DOMContentLoaded', function() {
     initializeApp();
 });
@@ -13,6 +24,15 @@ function initializeApp() {
         lastFileCount = window.mediaServerData.initialFileCount;
     }
     
+    // Initialize main.js functions if they exist
+    if (typeof loadCurrentMedia === 'function') {
+        loadCurrentMedia();
+    }
+    
+    if (typeof initializeUploadModal === 'function') {
+        initializeUploadModal();
+    }
+    
     // Start file monitoring with partial refresh
     startFileMonitoring();
     
@@ -21,20 +41,41 @@ function initializeApp() {
     initializeDisplaySettings();
     handleDragAndDrop();
     
-    console.log('Media Server initialized');
-    showNotification('Media Server ready', 'info');
+    // Final setup
+    document.body.classList.add('loaded');
+    
+    if (window.mediaServerData && window.mediaServerData.debug) {
+        console.log('Media Server initialized with debug logging enabled');
+    }
+    
+    if (typeof showNotification === 'function') {
+        showNotification('Media Server ready', 'info');
+    }
 }
 
 // ========= Enhanced File Monitoring with Partial Refresh =========
+
 function startFileMonitoring() {
+    // Clear any existing intervals
+    if (checkInterval) {
+        clearInterval(checkInterval);
+    }
+    
+    // Reset offline state
+    isServerOffline = false;
+    consecutiveFailures = 0;
+    
     // Initial check to set baseline values
     checkForChangesPartial();
     
-    // Start periodic checking every 3 seconds (increased from 2 to reduce server load)
+    // Start periodic checking every 3 seconds
     checkInterval = setInterval(checkForChangesPartial, 3000);
 }
 
 function checkForChangesPartial() {
+    // Skip if we know the server is offline
+    if (isServerOffline) return;
+    
     // Prevent multiple simultaneous checks
     if (isUpdating) return;
     
@@ -43,38 +84,119 @@ function checkForChangesPartial() {
     fetch('check_changes.php')
         .then(response => {
             if (!response.ok) {
-                throw new Error('Network response was not ok');
+                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
             }
             return response.json();
         })
         .then(data => {
+            // Reset failure count on success
+            consecutiveFailures = 0;
+            isServerOffline = false;
+            
             if (data.success) {
-                // Check if files have changed
                 const filesChanged = data.count !== lastFileCount || data.last_modified > lastModified;
                 
                 if (filesChanged) {
                     updateStatus('Files changed - updating list...', 'updating');
                     updateFileListPartial(data.files);
-                    
-                    // Update tracking variables
                     lastFileCount = data.count;
                     lastModified = data.last_modified;
-                    
-                    // Update file count display
                     updateFileCountDisplay(data.count);
-                    
                     updateStatus(`Monitoring ${data.count} files...`, 'monitoring');
                 } else {
                     updateStatus(`Monitoring ${data.count} files...`, 'monitoring');
                 }
+            } else {
+                throw new Error(data.message || 'Unknown server error');
             }
             isUpdating = false;
         })
         .catch(error => {
-            updateStatus('Monitor error', 'error');
-            console.error('Error checking for changes:', error);
             isUpdating = false;
+            consecutiveFailures++;
+            
+            // Check if it's a connection error
+            const isConnectionError = error.name === 'TypeError' || 
+                                    error.message.includes('Failed to fetch') ||
+                                    error.message.includes('ERR_CONNECTION_REFUSED') ||
+                                    error.message.includes('404') ||
+                                    error.message.includes('HTTP 0:');
+            
+            // Show specific error message based on the problem
+            if (error.message.includes('404')) {
+                updateStatus('check_changes.php not found', 'error');
+                if (window.mediaServerData && window.mediaServerData.debug) {
+                    console.error('check_changes.php file missing. Create this file for file monitoring.');
+                }
+            } else if (isConnectionError && consecutiveFailures >= maxFailures) {
+                isServerOffline = true;
+                updateStatus('Server offline - monitoring paused', 'offline');
+                
+                if (window.mediaServerData && window.mediaServerData.debug) {
+                    console.log('Server appears offline. Pausing file monitoring.');
+                }
+                
+                if (checkInterval) {
+                    clearInterval(checkInterval);
+                    checkInterval = null;
+                }
+                startOfflineMonitoring();
+                
+                if (typeof showNotification === 'function') {
+                    showNotification('Server connection lost. Monitoring paused.', 'warning');
+                }
+            } else if (!isConnectionError) {
+                updateStatus('Monitor error: ' + error.message, 'error');
+                if (window.mediaServerData && window.mediaServerData.debug) {
+                    console.error('Error checking for changes:', error);
+                }
+            }
+            // For connection errors before hitting maxFailures, we silently ignore
         });
+}
+
+function startOfflineMonitoring() {
+    // Check if server comes back online every 30 seconds
+    const offlineInterval = setInterval(() => {
+        if (window.mediaServerData && window.mediaServerData.debug) {
+            console.log('Checking if server is back online...');
+        }
+        
+        fetch('check_changes.php', {
+            method: 'GET',
+            cache: 'no-cache'
+        })
+        .then(response => {
+            if (response.ok) {
+                // Server is back online!
+                isServerOffline = false;
+                consecutiveFailures = 0;
+                
+                clearInterval(offlineInterval);
+                
+                updateStatus('Server reconnected - resuming monitoring', 'monitoring');
+                
+                if (window.mediaServerData && window.mediaServerData.debug) {
+                    console.log('Server reconnected. Resuming file monitoring.');
+                }
+                
+                if (typeof showNotification === 'function') {
+                    showNotification('Server connection restored!', 'success');
+                }
+                
+                // Resume regular monitoring
+                startFileMonitoring();
+            } else {
+                throw new Error('Server not ready');
+            }
+        })
+        .catch(() => {
+            // Still offline, continue checking (silent unless debug)
+            if (window.mediaServerData && window.mediaServerData.debug) {
+                console.log('Server still offline...');
+            }
+        });
+    }, offlineCheckInterval);
 }
 
 function updateFileListPartial(newFiles) {
@@ -102,7 +224,7 @@ function updateFileListPartial(newFiles) {
             emptyRow.innerHTML = `
                 <td colspan="2" class="center">
                     <p>No media files found.</p>
-                    <p>Upload files using the form below.</p>
+                    <p>Upload files using the button below.</p>
                 </td>
             `;
             tbody.insertBefore(emptyRow, uploadRow);
@@ -128,25 +250,35 @@ function createFileRow(filename, fileData) {
     row.id = 'file_' + filename.replace(/[^a-zA-Z0-9]/g, '');
     row.setAttribute('data-filename', filename);
     
-    // Create file cell with icon and info
+    // Create file cell
     const fileCell = document.createElement('td');
     fileCell.className = 'file';
-    fileCell.onclick = function() { displayFile(filename); };  // <-- FIXED THIS LINE
+    fileCell.onclick = function() { 
+        if (typeof displayFile === 'function') {
+            displayFile(filename); 
+        }
+    };
     fileCell.innerHTML = `
         <span class="file-icon">${fileData.icon}</span>
         <span class="filename">${escapeHtml(filename)}</span>
         <span class="file-info">${fileData.info}</span>
     `;
     
-    // Create remove cell
-    const removeCell = document.createElement('td');
-    removeCell.className = 'remove';
-    removeCell.onclick = function() { DeleteFile(filename); };
-    removeCell.title = 'Delete ' + filename;
-    removeCell.textContent = '✕';
+    // Create actions cell - exactly match the original HTML
+    const actionsCell = document.createElement('td');
+    actionsCell.className = 'file-actions';
+    actionsCell.setAttribute('width', '100'); // This matches your table header
+    
+    const deleteBtn = document.createElement('button');
+    deleteBtn.onclick = function() { DeleteFile(filename); };
+    deleteBtn.className = 'btn-small btn-delete';
+    deleteBtn.title = 'Delete ' + filename;
+    deleteBtn.textContent = '✕';
+    
+    actionsCell.appendChild(deleteBtn);
     
     row.appendChild(fileCell);
-    row.appendChild(removeCell);
+    row.appendChild(actionsCell);
     
     return row;
 }
@@ -165,13 +297,6 @@ function updateFileCountDisplay(count) {
     }
 }
 
-// ========= Utility Functions =========
-function escapeHtml(text) {
-    const div = document.createElement('div');
-    div.textContent = text;
-    return div.innerHTML;
-}
-
 function updateStatus(message, type = 'monitoring') {
     const status = document.getElementById('fileMonitorStatus');
     if (status) {
@@ -180,13 +305,21 @@ function updateStatus(message, type = 'monitoring') {
     }
 }
 
-function WriteFile(params) {
-    // console.log("Params: ", params);
+// ========= Utility Functions =========
 
-    var xhttp = new XMLHttpRequest();
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
+function WriteFile(params) {
+    const xhttp = new XMLHttpRequest();
     xhttp.onreadystatechange = function() {
         if (this.readyState == 4 && this.status == 200) {
-            console.log(this.responseText);
+            if (window.mediaServerData && window.mediaServerData.debug) {
+                console.log(this.responseText);
+            }
         }
     };
 
@@ -196,6 +329,7 @@ function WriteFile(params) {
 }
 
 // ========= Original Functions (keeping existing functionality) =========
+
 function ToggleElement() {
     const menu = document.getElementById("PresetMenu");
     if (!menu) return;
@@ -208,44 +342,25 @@ function ToggleElement() {
         menu.classList.remove('show');
     }
 }
-/*
-function menuItemClicked(filename) {
-    console.log("Selected file: " + filename);
-    
-    // Visual feedback - highlight selected file
-    const rows = document.querySelectorAll('.row');
-    rows.forEach(row => row.classList.remove('selected'));
-    
-    const selectedRow = document.getElementById('file_' + filename.replace(/[^a-zA-Z0-9]/g, ''));
-    if (selectedRow) {
-        selectedRow.classList.add('selected');
-    }
 
-    var timestamp = new Date().toISOString();
-    var params = "update=UpdateDisplay&filename=" + filename + "&timestamp=" + timestamp;
-
-    WriteFile(params);
-
-    showNotification(`Selected: ${filename}`, 'info');
-
-}
-*/
 function DeleteFile(filename) {
     if (!confirm(`Are you sure you want to delete '${filename}'?\n\nThis action cannot be undone.`)) {
         return;
     }
     
-    showNotification('Deleting file...', 'updating');
+    if (typeof showNotification === 'function') {
+        showNotification('Deleting file...', 'updating');
+    }
 
-    var params = "update=Delete&filename="+filename;
+    const params = "update=Delete&filename=" + encodeURIComponent(filename);
     WriteFile(params);
 }
 
 function SavePresetsToConfig(Presets) {
-    var params = "update=ConfigFileUpdate";
+    const params = "update=ConfigFileUpdate";
 
     Object.entries(Presets).forEach(([key, value]) => {
-        params += "&"+`${key}`+"="+`${value}`;
+        params += "&" + encodeURIComponent(key) + "=" + encodeURIComponent(value);
     });
 
     WriteFile(params);
@@ -280,20 +395,18 @@ function Update_Presets() {
         method: 'POST',
         body: formData,
         headers: {
-            'X-Requested-With': 'XMLHttpRequest'  // This helps server detect AJAX
+            'X-Requested-With': 'XMLHttpRequest'
         }
     })
     .then(response => {
         if (window.mediaServerData && window.mediaServerData.debug) {
             console.log('Response status:', response.status);
-            console.log('Response headers:', response.headers);
         }
-        return response.text(); // Get raw text first
+        return response.text();
     })
     .then(data => {
         if (window.mediaServerData && window.mediaServerData.debug) {
-            console.log('Raw response from server:');
-            console.log(data); // This will show us exactly what we're getting
+            console.log('Raw response from server:', data);
         }
         
         // Try to parse as JSON
@@ -305,23 +418,31 @@ function Update_Presets() {
             }
             
             if (jsonData.success) {
-                showNotification('Presets updated successfully!', 'success');
+                if (typeof showNotification === 'function') {
+                    showNotification('Presets updated successfully!', 'success');
+                }
                 document.getElementById('PresetMenu').style.display = 'none';
             } else {
-                showNotification('Error: ' + jsonData.message, 'error');
+                if (typeof showNotification === 'function') {
+                    showNotification('Error: ' + jsonData.message, 'error');
+                }
             }
         } catch (e) {
             if (window.mediaServerData && window.mediaServerData.debug) {
                 console.error('JSON parse failed. Raw response was:', data.substring(0, 500));
             }
-            showNotification('Server returned unexpected response. Please try again.', 'error');
+            if (typeof showNotification === 'function') {
+                showNotification('Server returned unexpected response. Please try again.', 'error');
+            }
         }
     })
     .catch(error => {
         if (window.mediaServerData && window.mediaServerData.debug) {
             console.error('Network error:', error);
         }
-        showNotification('Network error. Please check your connection.', 'error');
+        if (typeof showNotification === 'function') {
+            showNotification('Network error. Please check your connection.', 'error');
+        }
     });
     
     return false; // Prevent form submission
@@ -330,7 +451,9 @@ function Update_Presets() {
 function validateUpload() {
     const fileInput = document.getElementById('fileToUpload');
     if (!fileInput || !fileInput.files || fileInput.files.length === 0) {
-        showNotification('Please select a file to upload.', 'error');
+        if (typeof showNotification === 'function') {
+            showNotification('Please select a file to upload.', 'error');
+        }
         return false;
     }
     
@@ -339,7 +462,9 @@ function validateUpload() {
     // Check file size (500MB limit)
     const maxSize = 500 * 1024 * 1024;
     if (file.size > maxSize) {
-        showNotification('File is too large. Maximum size is 500MB.', 'error');
+        if (typeof showNotification === 'function') {
+            showNotification('File is too large. Maximum size is 500MB.', 'error');
+        }
         return false;
     }
     
@@ -391,6 +516,7 @@ function showNotification(message, type = 'info') {
 }
 
 // ========= Enhanced Features =========
+
 function initializeDisplaySettings() {
     // Auto-hide cursor after inactivity
     let inactivityTimer;
@@ -436,7 +562,9 @@ function handleDragAndDrop() {
             const fileInput = document.getElementById('fileToUpload');
             if (fileInput) {
                 fileInput.files = files;
-                showNotification(`File "${files[0].name}" ready for upload`, 'info');
+                if (typeof showNotification === 'function') {
+                    showNotification(`File "${files[0].name}" ready for upload`, 'info');
+                }
             }
         }
     }, false);
@@ -448,6 +576,7 @@ function handleDragAndDrop() {
 }
 
 // ========= Cleanup =========
+
 window.addEventListener('beforeunload', function() {
     if (checkInterval) {
         clearInterval(checkInterval);
