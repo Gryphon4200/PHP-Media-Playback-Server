@@ -72,13 +72,12 @@ Use Presets - Click the Presets dropdown to quickly switch between configured me
 
 ## Advanced Features
 ### File Monitoring
-The system automatically monitors your media directory for changes:
-
-✅ New files are detected and added to the list
-✅ Deleted files are removed from the interface
-✅ Modified files trigger updates
-✅ Real-time status shows monitoring state
-
+The system automatically monitors your media directory for changes:  
+✅ New files are detected and added to the list  
+✅ Deleted files are removed from the interface  
+✅ Modified files trigger updates  
+✅ Real-time status shows monitoring state  
+  
 ### Upload Progress
 Real-time speed tracking with current and average speeds
 Time remaining estimation based on upload progress
