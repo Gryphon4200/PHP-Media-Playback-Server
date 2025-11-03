@@ -100,6 +100,7 @@ Validation - Ensures selected files exist before saving
 
 ## Development
 ### File Structure
+```
 PHP-Media-Playback-Server/
 ├── index.php              # Main interface
 ├── display.php            # Media display page
@@ -113,7 +114,7 @@ PHP-Media-Playback-Server/
 ├── script.js             # File monitoring & presets
 ├── styles/               # CSS stylesheets
 └── media/                # Media files directory
-
+```  
 ### Debug Mode
 Enable debug logging in config.json:
 ```
@@ -179,16 +180,17 @@ Open a Pull Request
 This project is licensed under the MIT License - see the LICENSE file for details.
 
 ## Changelog
-**v2.0.0 (Latest)**
-✅ Enhanced Upload System - Real-time progress, cancellation, drag & drop
-✅ File Monitoring - Automatic detection of file system changes
-✅ Improved Error Handling - Graceful offline detection and recovery
-✅ Responsive Design - Mobile-friendly interface
-✅ Debug Mode - Comprehensive logging system
-**v1.0.0**
-✅ Basic Media Management - Upload, display, delete files
-✅ Preset System - Quick switching between media configurations
-✅ Web Interface - Clean, intuitive design
+**v2.0.0 (Latest)**  
+✅ Enhanced Upload System - Real-time progress, cancellation, drag & drop  
+✅ File Monitoring - Automatic detection of file system changes  
+✅ Improved Error Handling - Graceful offline detection and recovery  
+✅ Responsive Design - Mobile-friendly interface  
+✅ Debug Mode - Comprehensive logging system  
+  
+**v1.0.0**  
+✅ Basic Media Management - Upload, display, delete files  
+✅ Preset System - Quick switching between media configurations  
+✅ Web Interface - Clean, intuitive design  
 
 ## Acknowledgments
 Built for digital signage and media display applications
